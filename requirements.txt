@@ -1,0 +1,10 @@
+# requirements.txt — Local Case Management Tool
+
+# GUI framework (supports Python 3.12+)
+PySide6>=6.6.0,<6.10.0
+
+# Plotting (for dashboard charts)
+pyqtgraph>=0.13.1,<0.14.0
+
+# Packaging into standalone executable (Python 3.12 support)
+PyInstaller>=5.13.0,<6.0.0
