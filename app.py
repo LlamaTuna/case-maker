@@ -1,8 +1,8 @@
 # app.py
-import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget
+from PySide6.QtWidgets import QMainWindow, QTabWidget
 from controllers.DashboardController import DashboardController
-# … you’ll import the other controllers as you build them …
+from controllers.NewCaseController import NewCaseController
+from controllers.CaseViewController import CaseViewController
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -10,13 +10,11 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Case Manager")
         self.resize(1024, 768)
 
-        # Create a tab widget
+        # Tab widget setup
         self.tabs = QTabWidget()
         self.setCentralWidget(self.tabs)
 
-        # Add the Dashboard tab
-        dashboard = DashboardController()
-        self.tabs.addTab(dashboard, "Dashboard")
-
-        # In future: self.tabs.addTab(NewCaseController(), "New Case")
-        # In future: self.tabs.addTab(CaseViewController(), "Case View")
+        # Register each tab
+        self.tabs.addTab(DashboardController(), "Dashboard")
+        self.tabs.addTab(NewCaseController(), "New Case")
+        self.tabs.addTab(CaseViewController(), "Case View")

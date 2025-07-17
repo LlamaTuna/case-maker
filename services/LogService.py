@@ -1,42 +1,47 @@
 # services/LogService.py
 import sqlite3
-import os
-from datetime import datetime
+from pathlib import Path
 
 class LogService:
-    DB_PATH = os.path.join(os.environ.get('USERPROFILE', os.environ.get('HOME')), 'Documents', 'CaseManager', 'logs.db')
+    """
+    Handles logging of folder and case creation events into a SQLite database.
+    """
+    DB_PATH = Path.home() / ".case_manager_logs.sqlite"
 
     def __init__(self):
-        os.makedirs(os.path.dirname(LogService.DB_PATH), exist_ok=True)
-        self.conn = sqlite3.connect(LogService.DB_PATH)
-        self._ensure_schema()
+        self.conn = sqlite3.connect(str(self.DB_PATH))
+        self._ensure_tables()
 
-    def _ensure_schema(self):
+    def _ensure_tables(self):
         c = self.conn.cursor()
-        c.execute('''
-            CREATE TABLE IF NOT EXISTS file_log (
-                id INTEGER PRIMARY KEY,
-                timestamp TEXT,
-                case_id TEXT,
-                action TEXT,
-                filepath TEXT,
-                hash TEXT
-            )
-        ''')
+        c.execute("""
+        CREATE TABLE IF NOT EXISTS folder_logs (
+          id INTEGER PRIMARY KEY,
+          case_id TEXT,
+          folder_path TEXT,
+          ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )""")
+        c.execute("""
+        CREATE TABLE IF NOT EXISTS case_logs (
+          id INTEGER PRIMARY KEY,
+          case_id TEXT,
+          root_path TEXT,
+          ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )""")
         self.conn.commit()
 
-    def write_entry(self, case_id, action, filepath, file_hash=None):
+    def log_folder_creation(self, case_id: str, folder_path: str):
         c = self.conn.cursor()
         c.execute(
-            'INSERT INTO file_log (timestamp, case_id, action, filepath, hash) VALUES (?, ?, ?, ?, ?)',
-            (datetime.utcnow().isoformat(), case_id, action, filepath, file_hash)
+            "INSERT INTO folder_logs (case_id, folder_path) VALUES (?, ?)",
+            (case_id, folder_path)
         )
         self.conn.commit()
 
-    def get_recent_logs(self, case_id, limit=50):
+    def log_case_created(self, case_id: str, root_path: str):
         c = self.conn.cursor()
         c.execute(
-            'SELECT timestamp, action, filepath FROM file_log WHERE case_id = ? ORDER BY timestamp DESC LIMIT ?',
-            (case_id, limit)
+            "INSERT INTO case_logs (case_id, root_path) VALUES (?, ?)",
+            (case_id, root_path)
         )
-        return c.fetchall()
+        self.conn.commit()
